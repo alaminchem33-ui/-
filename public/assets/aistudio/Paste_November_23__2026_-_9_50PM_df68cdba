@@ -1,0 +1,1028 @@
+```html
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মেস ম্যানেজার | Mess Meal & Bazar Manager (Nov 2026)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Hind Siliguri for Bengali & Inter for English -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- PDF & Excel Export Libraries (Guaranteed Mobile & WebView Support) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+// ... existing code ... -->
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+        /* Crisp White Paper Print Styles */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
+            .no-print { display: none !important; }
+            #app-shell { display: none !important; }
+            #pdf-print-report {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+<div id="app-shell" class="min-h-screen flex flex-col">
+    <!-- Top Navigation & Controls -->
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 shadow-lg no-print">
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand & Month Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-900/30">
+                    <i class="fa-solid fa-utensils text-white text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 id="app-title" class="text-lg sm:text-xl font-bold tracking-tight text-white">মেস মিল ও বাজার হিসাব</h1>
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30" id="month-badge">নভেম্বর, ২০২৬</span>
+                    </div>
+                    <p id="app-subtitle" class="text-xs text-slate-400">স্বয়ংক্রিয় নির্ভুল মিল রেট ও ব্যালেন্স ম্যানেজার</p>
+                </div>
+            </div>
+
+            <!-- Right Controls -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Language Toggle -->
+                <button onclick="toggleLanguage()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-language text-base"></i>
+                    <span id="lang-btn-text">English</span>
+                </button>
+
+                <!-- Direct PDF Download Button -->
+                <button onclick="downloadPDFReport()" id="btn-download-pdf" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs sm:text-sm transition shadow-md shadow-rose-950/40 cursor-pointer">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span data-i18n="downloadPdf">পিডিএফ ডাউনলোড</span>
+                </button>
+
+                <!-- Direct Excel (.xlsx) Download Button -->
+                <button onclick="exportToExcel()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition shadow-md shadow-emerald-950/40 cursor-pointer">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span data-i18n="exportExcel">এক্সেল (.xlsx)</span>
+                </button>
+
+                <!-- Print Button -->
+                <button onclick="triggerPrintReport()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-medium transition cursor-pointer">
+                    <i class="fa-solid fa-print"></i>
+                    <span data-i18n="print">প্রিন্ট</span>
+                </button>
+
+                <!-- Reset to Nov 2026 Spreadsheet Data -->
+                <button onclick="openResetModal()" class="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-medium transition cursor-pointer" title="Reset to original image data">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span class="hidden lg:inline" data-i18n="resetData">রিসেট</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-[1600px] mx-auto px-3 sm:px-6 flex items-center gap-1 overflow-x-auto border-t border-slate-800/80 bg-slate-900/50">
+            <button onclick="switchTab('main')" id="tab-btn-main" class="tab-btn active px-4 py-2.5 text-sm font-semibold border-b-2 border-blue-500 text-blue-400 flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-table"></i>
+                <span data-i18n="tabMain">মেইন হিসাব শিট</span>
+            </button>
+            <button onclick="switchTab('bazar')" id="tab-btn-bazar" class="tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <span data-i18n="tabBazar">দৈনিক বাজার (৩০ দিন)</span>
+                <span id="badge-total-bazar" class="px-1.5 py-0.5 text-xs rounded bg-amber-500/20 text-amber-300 tabular-nums">68,100</span>
+            </button>
+            <button onclick="switchTab('dailyMeal')" id="tab-btn-dailyMeal" class="tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span data-i18n="tabDailyMeal">দৈনিক মিল চার্ট</span>
+            </button>
+            <button onclick="switchTab('settings')" id="tab-btn-settings" class="tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-sliders"></i>
+                <span data-i18n="tabSettings">হিসাবের নিয়ম ও ফিস্ট</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Top Summary KPI Cards (Matching Bottom Left of the Image + Live Metrics) -->
+    <section class="max-w-[1600px] w-full mx-auto px-3 sm:px-6 pt-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Total Deposit -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span data-i18n="kpiTotalDeposit">মোট জমা (Deposit)</span>
+                    <i class="fa-solid fa-wallet text-blue-400"></i>
+                </div>
+                <div id="kpi-deposit" class="text-lg sm:text-xl font-bold text-white tabular-nums">91,110.00</div>
+                <div class="text-[11px] text-slate-500 mt-0.5" data-i18n="kpiCurrentMonth">চলতি মাসের জমা</div>
+            </div>
+
+            <!-- Total Bazar -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span data-i18n="kpiTotalBazar">মোট বাজার (Bazar)</span>
+                    <i class="fa-solid fa-cart-shopping text-amber-400"></i>
+                </div>
+                <div id="kpi-bazar" class="text-lg sm:text-xl font-bold text-amber-400 tabular-nums">68,100.00</div>
+                <div class="text-[11px] text-slate-500 mt-0.5" data-i18n="kpiBazarSub">১ - ৩০ তারিখ মোট খরচ</div>
+            </div>
+
+            <!-- Remained (Deposit - Bazar, exact match to image's 23,010.00) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span data-i18n="kpiRemained">ক্যাশ অবশিষ্ট (Remained)</span>
+                    <i class="fa-solid fa-vault text-emerald-400"></i>
+                </div>
+                <div id="kpi-remained" class="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums">23,010.00</div>
+                <div class="text-[11px] text-slate-500 mt-0.5" data-i18n="kpiRemainedSub">মোট জমা − মোট বাজার</div>
+            </div>
+
+            <!-- Total Meals -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span data-i18n="kpiTotalMeals">মোট মিল (Total Meals)</span>
+                    <i class="fa-solid fa-bowl-rice text-purple-400"></i>
+                </div>
+                <div id="kpi-meals" class="text-lg sm:text-xl font-bold text-purple-300 tabular-nums">0.0</div>
+                <div id="kpi-meals-sub" class="text-[11px] text-slate-500 mt-0.5">সদস্য + শেফ মিল</div>
+            </div>
+
+            <!-- Meal Rate -->
+            <div class="bg-slate-900 border border-blue-900/50 rounded-xl p-3.5 shadow-sm bg-gradient-to-b from-blue-950/30 to-slate-900">
+                <div class="flex items-center justify-between text-xs text-blue-300 mb-1">
+                    <span data-i18n="kpiMealRate">মিল রেট (Meal Rate)</span>
+                    <i class="fa-solid fa-calculator text-blue-400"></i>
+                </div>
+                <div id="kpi-rate" class="text-lg sm:text-xl font-bold text-blue-400 tabular-nums">0.00</div>
+                <div class="text-[11px] text-slate-400 mt-0.5" data-i18n="kpiRateSub">মোট বাজার ÷ মোট মিল</div>
+            </div>
+
+            <!-- Net Balance Reconciliation -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span data-i18n="kpiNetBalance">সর্বমোট নিট ব্যালেন্স</span>
+                    <i class="fa-solid fa-scale-balanced text-cyan-400"></i>
+                </div>
+                <div id="kpi-net-balance" class="text-lg sm:text-xl font-bold text-cyan-300 tabular-nums">0.00</div>
+                <div class="text-[11px] text-slate-500 mt-0.5" data-i18n="kpiNetSub">সদস্যদের পাওনা/দেনা যোগফল</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-4 flex-1">
+
+        <!-- ==================== TAB 1: MAIN SHEET ==================== -->
+        <div id="view-main" class="space-y-4">
+            <!-- Toolbar above table -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/90 p-3 rounded-xl border border-slate-800 no-print">
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="search-member" oninput="renderMainTable()" placeholder="সদস্য খুঁজুন..." class="pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-blue-500 w-44 sm:w-56">
+                    </div>
+                    <button onclick="openAddMemberModal()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium flex items-center gap-1.5 transition cursor-pointer">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span data-i18n="addMember">নতুন সদস্য</span>
+                    </button>
+                </div>
+
+                <!-- Quick Feast Cost & Info Banner -->
+                <div class="flex flex-wrap items-center gap-3 text-xs">
+                    <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <span class="text-slate-400" data-i18n="quickFeastLabel">মোট ফিস্ট খরচ (সবার জন্য সমান):</span>
+                        <input type="number" id="global-feast-input" step="any" min="0" value="0" onchange="applyGlobalFeast(this.value)" class="w-20 bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-right text-amber-300 font-semibold focus:outline-none focus:border-amber-500 tabular-nums">
+                    </div>
+                    <span class="text-slate-400 hidden xl:inline">
+                        <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i>
+                        <span data-i18n="editHint">যেকোনো ঘরের সংখ্যায় ক্লিক করে সরাসরি পরিবর্তন করতে পারবেন</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Main Spreadsheet Table + Side Daily Bazar Mini Summary (Matching Image Layout) -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
+                
+                <!-- Left 9 Cols: Member Account Table -->
+                <div class="xl:col-span-9 bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs sm:text-sm border-collapse print-table">
+                            <thead>
+                                <tr class="bg-blue-900/60 text-blue-100 border-b border-slate-700 text-center font-semibold">
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 w-10">#</th>
+                                    <th class="py-2.5 px-3 border-r border-slate-700/80 text-left min-w-[155px]" data-i18n="colName">নাম (Name)</th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[95px]" data-i18n="colPrev">পূর্বের ব্যালেন্স<br><span class="text-[10px] font-normal text-blue-300">Previous Balance</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[90px]" data-i18n="colDeposit">জমা<br><span class="text-[10px] font-normal text-blue-300">Deposit</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[95px] bg-blue-950/50" data-i18n="colTotal">মোট জমা<br><span class="text-[10px] font-normal text-blue-300">Total</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[80px]" data-i18n="colMealQty">মিল সংখ্যা<br><span class="text-[10px] font-normal text-blue-300">Meal QTY</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[75px]" data-i18n="colMealRate">মিল রেট<br><span class="text-[10px] font-normal text-blue-300">Meal Rate</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[85px]" data-i18n="colCostMeal">মিল খরচ<br><span class="text-[10px] font-normal text-blue-300">Cost/Meal</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[85px]" data-i18n="colChefCost">শেফ মিল<br><span class="text-[10px] font-normal text-blue-300">Chef Cost</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[80px]" data-i18n="colFeastCost">ফিস্ট খরচ<br><span class="text-[10px] font-normal text-blue-300">Feast Cost</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[90px] bg-slate-800/80" data-i18n="colTotalCost">মোট খরচ<br><span class="text-[10px] font-normal text-blue-300">Total Cost</span></th>
+                                    <th class="py-2.5 px-2 border-r border-slate-700/80 min-w-[100px] bg-indigo-950/60" data-i18n="colNetBalance">নিট ব্যালেন্স<br><span class="text-[10px] font-normal text-blue-300">Net Balance</span></th>
+                                    <th class="py-2.5 px-2 w-10 no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="main-table-body" class="divide-y divide-slate-800/90 tabular-nums">
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                            <tfoot id="main-table-foot" class="bg-slate-800 font-bold text-white border-t-2 border-slate-600 tabular-nums">
+                                <!-- Totals injected via JS -->
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right 3 Cols: Daily Bazar Quick Panel (Matching Right Side of Image) -->
+                <div class="xl:col-span-3 bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-700 to-blue-800 px-3 py-2.5 flex items-center justify-between">
+                        <span class="font-bold text-sm text-white flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-amber-300"></i>
+                            <span data-i18n="sideBazarTitle">দৈনিক বাজার (নভেম্বর)</span>
+                        </span>
+                        <button onclick="switchTab('bazar')" class="text-xs bg-white/15 hover:bg-white/25 text-white px-2 py-1 rounded transition cursor-pointer" data-i18n="viewAll">সব দেখুন</button>
+                    </div>
+                    <div class="max-h-[760px] overflow-y-auto">
+                        <table class="w-full text-xs border-collapse tabular-nums">
+                            <thead class="sticky top-0 bg-slate-800 text-slate-200 border-b border-slate-700">
+                                <tr>
+                                    <th class="py-2 px-3 text-left text-amber-300" data-i18n="colDate">তারিখ (Date)</th>
+                                    <th class="py-2 px-3 text-right text-amber-300" data-i18n="colCost">খরচ (Cost)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="side-bazar-body" class="divide-y divide-slate-800/80">
+                                <!-- 30 days injected via JS -->
+                            </tbody>
+                            <tfoot class="sticky bottom-0 bg-emerald-950 border-t-2 border-emerald-700 font-bold text-emerald-300">
+                                <tr>
+                                    <td class="py-2.5 px-3" data-i18n="totalBazarLabel">মোট বাজার (Total bazar)</td>
+                                    <td id="side-total-bazar" class="py-2.5 px-3 text-right text-sm">68,100.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Summary Box (Exact Replica of the Bottom-Left Box in the Image) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div class="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-lg max-w-md">
+                    <div class="bg-amber-400 text-slate-950 font-bold px-4 py-1.5 text-xs uppercase tracking-wider flex items-center justify-between">
+                        <span data-i18n="summaryBoxTitle">ক্যাশ ও ব্যালেন্স সারসংক্ষেপ (Nov, 2026)</span>
+                        <i class="fa-solid fa-check-double"></i>
+                    </div>
+                    <table class="w-full text-sm tabular-nums divide-y divide-slate-800">
+                        <tr>
+                            <td class="py-2 px-4 font-semibold text-slate-300" data-i18n="sumRemained">অবশিষ্ট ক্যাশ (Remained)</td>
+                            <td id="box-remained" class="py-2 px-4 text-right font-bold text-emerald-400">23,010.00</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 font-semibold text-slate-300" data-i18n="sumTotalDeposit">মোট জমা (Total Deposit)</td>
+                            <td id="box-deposit" class="py-2 px-4 text-right font-bold text-white">91,110.00</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 font-semibold text-slate-300" data-i18n="sumPrevBalance">সর্বমোট পূর্বের ব্যালেন্স (Previous Balance)</td>
+                            <td id="box-prev" class="py-2 px-4 text-right font-bold text-slate-200">0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 font-semibold text-slate-300" data-i18n="sumNetBalance">মোট নিট ব্যালেন্স (Net Balance)</td>
+                            <td id="box-net" class="py-2 px-4 text-right font-bold text-cyan-400">0.00</td>
+                        </tr>
+                        <tr class="bg-slate-800/50">
+                            <td class="py-2.5 px-4 font-bold text-amber-300" data-i18n="sumTotalBazar">মোট বাজার (Total bazar)</td>
+                            <td id="box-bazar" class="py-2.5 px-4 text-right font-bold text-amber-300">68,100.00</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Formula & Accounting Transparency Card -->
+                <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4 text-xs text-slate-400 space-y-2">
+                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                        <span data-i18n="formulaTitle">নির্ভুল হিসাবের সূত্রসমূহ (Zero-Error Accounting Logic)</span>
+                    </h3>
+                    <ul class="space-y-1.5 list-disc list-inside leading-relaxed">
+                        <li data-i18n="formula1"><strong>মোট জমা (Total):</strong> পূর্বের ব্যালেন্স (Previous Balance) + চলতি মাসের জমা (Deposit)</li>
+                        <li data-i18n="formula2"><strong>মিল রেট (Meal Rate):</strong> মোট বাজার খরচ ÷ সর্বমোট মিল (সদস্য + শেফ)</li>
+                        <li data-i18n="formula3"><strong>শেফ মিল খরচ (Chef Meal Cost):</strong> শেফের মিলের মোট খরচ সক্রিয় সদস্যদের মাঝে বণ্টিত হয়।</li>
+                        <li data-i18n="formula4"><strong>নিট ব্যালেন্স (Net Balance):</strong> মোট জমা − মোট খরচ (সবুজ অর্থ মেস থেকে পাবেন, লাল অর্থ মেসে দিতে হবে)।</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 2: DAILY BAZAR ENTRY ==================== -->
+        <div id="view-bazar" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white" data-i18n="bazarHeader">নভেম্বর ২০২৬ — দৈনিক বাজারের হিসাব</h2>
+                    <p class="text-xs text-slate-400" data-i18n="bazarSub">প্রতিদিনের বাজারের টাকা ও বাজারকারীর নাম লিখুন; মেইন শিটে স্বয়ংক্রিয়ভাবে আপডেট হবে।</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-amber-500/10 border border-amber-500/30 px-4 py-2 rounded-xl">
+                        <span class="text-xs text-amber-300 block" data-i18n="totalBazarLabel">মোট বাজার খরচ</span>
+                        <span id="bazar-tab-total" class="text-xl font-bold text-amber-400 tabular-nums">68,100.00 ৳</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse tabular-nums">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-200 border-b border-slate-700">
+                                <th class="py-3 px-4 text-left w-16">#</th>
+                                <th class="py-3 px-4 text-left w-40" data-i18n="colDate">তারিখ (Date)</th>
+                                <th class="py-3 px-4 text-left" data-i18n="colShopper">বাজারকারী ও বিবরণ (Shopper / Items)</th>
+                                <th class="py-3 px-4 text-right w-44" data-i18n="colBazarAmount">বাজার খরচ (টাকা)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="full-bazar-body" class="divide-y divide-slate-800">
+                            <!-- 30 days full bazar rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 3: DAILY MEAL ATTENDANCE SHEET ==================== -->
+        <div id="view-dailyMeal" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white" data-i18n="dailyMealHeader">দৈনিক মিল এন্ট্রি চার্ট (১ - ৩০ নভেম্বর)</h2>
+                    <p class="text-xs text-slate-400" data-i18n="dailyMealSub">প্রতিদিনের মিল সংখ্যা (যেমন: 0, 1, 1.5, 2, 2.5, 3) বসান এবং "মেইন শিটে যুক্ত করুন" বাটনে ক্লিক করুন।</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="fillDefaultDailyMeals()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-medium border border-slate-700 cursor-pointer">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1 text-amber-400"></i>
+                        <span data-i18n="fillSampleMeals">নমুনা মিল বসান (টেস্ট)</span>
+                    </button>
+                    <button onclick="syncDailyMealsToMain()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-md flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span data-i18n="syncMealsBtn">মেইন শিটে মিল আপডেট করুন</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                <div class="overflow-x-auto max-h-[650px]">
+                    <table class="w-full text-xs border-collapse tabular-nums">
+                        <thead class="sticky top-0 z-20 bg-slate-800 text-slate-200 border-b border-slate-700">
+                            <tr id="daily-meal-thead-row">
+                                <!-- Sticky Name + Days 1..30 + Total -->
+                            </tr>
+                        </thead>
+                        <tbody id="daily-meal-tbody" class="divide-y divide-slate-800">
+                            <!-- Rows for each member -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 4: SETTINGS & FEAST ==================== -->
+        <div id="view-settings" class="hidden max-w-3xl mx-auto space-y-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-5">
+                <h2 class="text-lg font-bold text-white border-b border-slate-800 pb-3" data-i18n="settingsTitle">হিসাবের সেটিংস ও ফিস্ট ব্যবস্থাপনা</h2>
+                
+                <!-- Month Title Setting -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1" data-i18n="setMonthLabel">মাসের নাম (বাংলায়)</label>
+                        <input type="text" id="setting-month-bn" value="নভেম্বর, ২০২৬" onchange="updateSettings()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1" data-i18n="setMonthEnLabel">মাসের নাম (ইংরেজিতে)</label>
+                        <input type="text" id="setting-month-en" value="Nov, 2026" onchange="updateSettings()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    </div>
+                </div>
+
+                <!-- Chef Meal Distribution Rule -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <label class="block text-sm font-semibold text-blue-300" data-i18n="chefRuleLabel">শেফের মিল খরচ বণ্টন পদ্ধতি (Chef Meal Cost Rule)</label>
+                    <p class="text-xs text-slate-400" data-i18n="chefRuleDesc">শেফের নিজের মিলের খরচ (Chef Meal QTY × Meal Rate) সাধারণ সদস্যদের মাঝে কীভাবে ভাগ হবে?</p>
+                    <select id="setting-chef-rule" onchange="updateSettings()" class="w-full sm:w-auto bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white mt-1">
+                        <option value="equal" data-i18n="chefRuleEqual">সকল সক্রিয় সদস্যদের মাঝে সমান ভাগে (Equal Split - Recommended)</option>
+                        <option value="proportional" data-i18n="chefRuleProp">সদস্যদের মিল সংখ্যার অনুপাতে (Proportional to Meal QTY)</option>
+                    </select>
+                </div>
+
+                <!-- Global Feast Cost Distributor -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <label class="block text-sm font-semibold text-amber-300" data-i18n="feastRuleLabel">ফিস্ট বা বিশেষ ভোজের খরচ বণ্টন (Feast Cost)</label>
+                    <p class="text-xs text-slate-400" data-i18n="feastRuleDesc">মোট ফিস্ট খরচ লিখলে তা সক্রিয় সদস্যদের (শেফ বাদে) মাঝে সমান ভাগে বণ্টিত হয়ে মেইন শিটের "Feast Meal Cost" কলামে বসে যাবে।</p>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <input type="number" id="setting-total-feast" min="0" step="any" placeholder="যেমন: 5600" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white w-48">
+                        <button onclick="applyGlobalFeast(document.getElementById('setting-total-feast').value)" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold cursor-pointer" data-i18n="applyFeastBtn">সবার মাঝে ভাগ করুন</button>
+                    </div>
+                </div>
+
+                <!-- JSON Backup & Restore -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <label class="block text-sm font-semibold text-emerald-300" data-i18n="backupTitle">ডাটা ব্যাকআপ ও রিস্টোর (JSON File)</label>
+                    <p class="text-xs text-slate-400" data-i18n="backupDesc">হিসাবের ব্যাকআপ ফাইল সেভ করে রাখুন অথবা অন্য ফোনে লোড করুন।</p>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button onclick="downloadJsonBackup()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-download"></i>
+                            <span data-i18n="backupDownloadBtn">ব্যাকআপ ডাউনলোড করুন</span>
+                        </button>
+                        <label class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-upload"></i>
+                            <span data-i18n="backupRestoreBtn">ব্যাকআপ ফাইল লোড করুন</span>
+                            <input type="file" accept=".json" onchange="restoreJsonBackup(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+    <!-- ==================== CLEAN WHITE-PAPER PRINT & PDF TEMPLATE ==================== -->
+    <div id="pdf-print-report" class="hidden bg-white text-black p-5 font-sans" style="width: 1100px; max-width: 100%;">
+        <!-- Report Header -->
+        <div style="border-bottom: 2px solid #1e293b; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1 id="pdf-report-title" style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0;">Mess Meal & Bazar Report — Nov, 2026</h1>
+                <p id="pdf-report-subtitle" style="font-size: 11px; color: #475569; margin: 2px 0 0 0;">Generated on: <span id="pdf-generated-date"></span></p>
+            </div>
+            <div style="text-align: right; font-size: 11px; color: #334155;">
+                <span style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 3px 8px; border-radius: 4px; font-weight: 600;" id="pdf-rate-badge">Meal Rate: 0.00</span>
+            </div>
+        </div>
+
+        <!-- Summary Strip -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 12px;">
+            <div style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                <div style="font-size: 10px; color: #475569; font-weight: 600;" id="pdf-lbl-deposit">Total Deposit</div>
+                <div style="font-size: 14px; font-weight: 700; color: #0f172a;" id="pdf-val-deposit">91,110.00</div>
+            </div>
+            <div style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                <div style="font-size: 10px; color: #475569; font-weight: 600;" id="pdf-lbl-bazar">Total Bazar</div>
+                <div style="font-size: 14px; font-weight: 700; color: #b45309;" id="pdf-val-bazar">68,100.00</div>
+            </div>
+            <div style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                <div style="font-size: 10px; color: #475569; font-weight: 600;" id="pdf-lbl-remained">Remained Cash</div>
+                <div style="font-size: 14px; font-weight: 700; color: #047857;" id="pdf-val-remained">23,010.00</div>
+            </div>
+            <div style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                <div style="font-size: 10px; color: #475569; font-weight: 600;" id="pdf-lbl-meals">Total Meals</div>
+                <div style="font-size: 14px; font-weight: 700; color: #1d4ed8;" id="pdf-val-meals">0.0</div>
+            </div>
+            <div style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                <div style="font-size: 10px; color: #475569; font-weight: 600;" id="pdf-lbl-rate">Meal Rate</div>
+                <div style="font-size: 14px; font-weight: 700; color: #1e40af;" id="pdf-val-rate">0.00</div>
+            </div>
+        </div>
+
+        <!-- Two Column Report Body: Member Sheet + Daily Bazar -->
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <!-- Member Table -->
+            <div style="flex: 3;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: right;">
+                    <thead>
+                        <tr style="background: #1e3a8a; color: #ffffff; text-align: center;">
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">#</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 5px; text-align: left;">Name</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Prev. Bal</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Deposit</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Total</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Meal QTY</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Rate</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Cost/Meal</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Chef Cost</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Feast</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 3px;">Total Cost</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 4px;">Net Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdf-member-tbody"></tbody>
+                    <tfoot id="pdf-member-tfoot" style="background: #e2e8f0; font-weight: 700;"></tfoot>
+                </table>
+            </div>
+
+            <!-- Daily Bazar Table -->
+            <div style="flex: 1;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                    <thead>
+                        <tr style="background: #0f172a; color: #fbbf24;">
+                            <th style="border: 1px solid #94a3b8; padding: 4px 5px; text-align: left;">Date</th>
+                            <th style="border: 1px solid #94a3b8; padding: 4px 5px; text-align: right;">Bazar Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pdf-bazar-tbody"></tbody>
+                    <tfoot id="pdf-bazar-tfoot" style="background: #dcfce7; font-weight: 700; color: #065f46;"></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="add-member-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white" data-i18n="modalAddTitle">নতুন সদস্য যোগ করুন</h3>
+                <button onclick="closeAddMemberModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1" data-i18n="colName">সদস্যের নাম</label>
+                    <input type="text" id="new-member-name" placeholder="যেমন: Tanvir Ahmed" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1" data-i18n="colPrev">পূর্বের ব্যালেন্স</label>
+                        <input type="number" id="new-member-prev" value="0" step="any" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1" data-i18n="colDeposit">জমা (Deposit)</label>
+                        <input type="number" id="new-member-dep" value="0" step="any" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+                    </div>
+                </div>
+                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-1">
+                    <input type="checkbox" id="new-member-chef" class="rounded bg-slate-950 border-slate-700 text-blue-600">
+                    <span data-i18n="isChefLabel">ইনি মেসের শেফ/বাবুর্চি (তাঁর মিল খরচ সদস্যদের মাঝে ভাগ হবে)</span>
+                </label>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button onclick="closeAddMemberModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm cursor-pointer" data-i18n="cancel">বাতিল</button>
+                <button onclick="confirmAddMember()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold cursor-pointer" data-i18n="save">সংরক্ষণ করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center gap-3 text-rose-400">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                <h3 class="text-lg font-bold text-white" data-i18n="resetModalTitle">ছবির মূল তথ্যে ফিরে যাবেন?</h3>
+            </div>
+            <p class="text-sm text-slate-300" data-i18n="resetModalDesc">এতে আপনার বর্তমান পরিবর্তনগুলো মুছে গিয়ে ছবির নভেম্বর ২০২৬-এর হুবহু ২৮ জন সদস্য, ৯১,১১০.০০ টাকা জমা এবং ৬৮,১০০.০০ টাকা বাজারের হিসাব লোড হবে।</p>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeResetModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-slate-300 text-sm cursor-pointer" data-i18n="cancel">বাতিল</button>
+                <button onclick="resetToOriginalData()" class="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-sm font-semibold cursor-pointer" data-i18n="confirmReset">হ্যাঁ, রিসেট করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 border border-slate-700 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-sm">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-msg">সফলভাবে সংরক্ষিত হয়েছে!</span>
+    </div>
+
+    <script>
+        // ==================== EXACT DATA FROM NOVEMBER 2026 SPREADSHEET IMAGE ====================
+        const INITIAL_MEMBERS = [
+            { id: 1, name: "Md Belal Hssen", prev: 1168.345, deposit: 4500, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 2, name: "Shariful Sakib", prev: 1252.085, deposit: 3500, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 3, name: "Mahfuj Rasel", prev: -537.13, deposit: 4000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 4, name: "Ridoanur Turjo", prev: -10.58, deposit: 4000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 5, name: "Sanower", prev: 550.04, deposit: 0, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 6, name: "Ainul", prev: -3258.5, deposit: 7000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 7, name: "Md Hossen", prev: -673.535, deposit: 5000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 8, name: "Limon", prev: 7387.585, deposit: 0, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 9, name: "Aminul", prev: 4653.545, deposit: 2000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 10, name: "Rasel (LAB)", prev: 307.6, deposit: 5000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 11, name: "Shariful", prev: 187.59, deposit: 3000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 12, name: "kazi Inzamam", prev: 348.54, deposit: 4000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 13, name: "Mehedi Hasan", prev: 57.325, deposit: 3000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 14, name: "Ahmed Sharif", prev: -2487.21, deposit: 5000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 15, name: "Mohibbur", prev: 297.025, deposit: 4000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 16, name: "Shibbir(Imam)", prev: 743.87, deposit: 2000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 17, name: "Ruhul Amin", prev: -992.225, deposit: 3000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 18, name: "Al Amin (LAB)", prev: 932.6, deposit: 3000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 19, name: "Miraj", prev: 610.81, deposit: 0, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 20, name: "Ponir", prev: -1421.06, deposit: 4000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 21, name: "Al Amin (NH3)", prev: -2163.545, deposit: 4000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 22, name: "Minhaj", prev: -328.965, deposit: 4000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 23, name: "Sifat", prev: -2820.765, deposit: 5000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 24, name: "Shuvo", prev: -1694.3, deposit: 4500, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 25, name: "Zahid", prev: -2109.145, deposit: 4610, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 26, name: "Sonjoy Ray", prev: 0, deposit: 0, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 27, name: "Maruf Saikot", prev: 0, deposit: 3000, mealQty: 0, feastCost: 0, isChef: false },
+            { id: 28, name: "Chef", prev: 0, deposit: 0, mealQty: 0, feastCost: 0, isChef: true }
+        ];
+
+        const INITIAL_BAZAR = [
+            { day: 1, date: "01/11/2026", cost: 3730, note: "" },
+            { day: 2, date: "02/11/2026", cost: 2730, note: "" },
+            { day: 3, date: "03/11/2026", cost: 3960, note: "" },
+            { day: 4, date: "04/11/2026", cost: 3580, note: "" },
+            { day: 5, date: "05/11/2026", cost: 3340, note: "" },
+            { day: 6, date: "06/11/2026", cost: 2910, note: "" },
+            { day: 7, date: "07/11/2026", cost: 2740, note: "" },
+            { day: 8, date: "08/11/2026", cost: 3470, note: "" },
+            { day: 9, date: "09/11/2026", cost: 3280, note: "" },
+            { day: 10, date: "10/11/2026", cost: 3420, note: "" },
+            { day: 11, date: "11/11/2026", cost: 4520, note: "" },
+            { day: 12, date: "12/11/2026", cost: 3590, note: "" },
+            { day: 13, date: "13/11/2026", cost: 3410, note: "" },
+            { day: 14, date: "14/11/2026", cost: 3500, note: "" },
+            { day: 15, date: "15/11/2026", cost: 4540, note: "" },
+            { day: 16, date: "16/11/2026", cost: 3570, note: "" },
+            { day: 17, date: "17/11/2026", cost: 4500, note: "" },
+            { day: 18, date: "18/11/2026", cost: 3510, note: "" },
+            { day: 19, date: "19/11/2026", cost: 3800, note: "" },
+            { day: 20, date: "20/11/2026", cost: 0, note: "" },
+            { day: 21, date: "21/11/2026", cost: 0, note: "" },
+            { day: 22, date: "22/11/2026", cost: 0, note: "" },
+            { day: 23, date: "23/11/2026", cost: 0, note: "" },
+            { day: 24, date: "24/11/2026", cost: 0, note: "" },
+            { day: 25, date: "25/11/2026", cost: 0, note: "" },
+            { day: 26, date: "26/11/2026", cost: 0, note: "" },
+            { day: 27, date: "27/11/2026", cost: 0, note: "" },
+            { day: 28, date: "28/11/2026", cost: 0, note: "" },
+            { day: 29, date: "29/11/2026", cost: 0, note: "" },
+            { day: 30, date: "30/11/2026", cost: 0, note: "" }
+        ];
+
+        // ==================== TRANSLATIONS (BENGALI & ENGLISH) ====================
+        const I18N = {
+            bn: {
+                appTitle: "মেস মিল ও বাজার হিসাব",
+                appSubtitle: "স্বয়ংক্রিয় নির্ভুল মিল রেট ও ব্যালেন্স ম্যানেজার",
+                langBtn: "English",
+                downloadPdf: "পিডিএফ ডাউনলোড",
+                exportExcel: "এক্সেল (.xlsx)",
+                print: "প্রিন্ট",
+                resetData: "রিসেট",
+                tabMain: "মেইন হিসাব শিট",
+// ... existing code ... -->
+                resetModalTitle: "ছবির মূল তথ্যে ফিরে যাবেন?",
+                resetModalDesc: "এতে আপনার বর্তমান পরিবর্তনগুলো মুছে গিয়ে ছবির নভেম্বর ২০২৬-এর হুবহু ২৮ জন সদস্য, ৯১,১১০.০০ টাকা জমা এবং ৬৮,১০০.০০ টাকা বাজারের হিসাব লোড হবে।",
+                confirmReset: "হ্যাঁ, রিসেট করুন",
+                totalRowLabel: "সর্বমোট (Total)",
+                chefTag: "শেফ",
+                backupTitle: "ডাটা ব্যাকআপ ও রিস্টোর (JSON File)",
+                backupDesc: "হিসাবের ব্যাকআপ ফাইল সেভ করে রাখুন অথবা অন্য ফোনে লোড করুন।",
+                backupDownloadBtn: "ব্যাকআপ ডাউনলোড করুন",
+                backupRestoreBtn: "ব্যাকআপ ফাইল লোড করুন"
+            },
+            en: {
+                appTitle: "Mess Meal & Bazar Manager",
+                appSubtitle: "Zero-Error Automated Meal Rate & Balance Sheet",
+                langBtn: "বাংলা",
+                downloadPdf: "Download PDF",
+                exportExcel: "Excel (.xlsx)",
+                print: "Print",
+                resetData: "Reset",
+                tabMain: "Main Account Sheet",
+// ... existing code ... -->
+                resetModalTitle: "Reset to Original Image Data?",
+                resetModalDesc: "This will restore the exact 28 members, 91,110.00 Total Deposit, and 68,100.00 Total Bazar from the Nov 2026 spreadsheet image.",
+                confirmReset: "Yes, Reset",
+                totalRowLabel: "Total",
+                chefTag: "Chef",
+                backupTitle: "Data Backup & Restore (JSON File)",
+                backupDesc: "Save a backup file of your calculations or restore on another phone.",
+                backupDownloadBtn: "Download Backup",
+                backupRestoreBtn: "Restore Backup File"
+            }
+        };
+
+        // ==================== APPLICATION STATE ====================
+// ... existing code ... -->
+                if (t[key]) {
+                    // Preserve child <br><span> if present in table headers
+                    const subSpan = el.querySelector("span");
+                    if (subSpan && el.tagName === "TH") {
+                        el.childNodes[0].nodeValue = t[key];
+                    } else {
+                        el.textContent = t[key];
+                    }
+                }
+            });
+        }
+
+        // ==================== POPULATE CLEAN WHITE-PAPER PRINT/PDF TEMPLATE ====================
+        function populateCleanReportTemplate() {
+            const calc = calculateAll();
+            const isBn = state.lang === 'bn';
+            const monthLabel = isBn ? state.monthBn : state.monthEn;
+
+            document.getElementById("pdf-report-title").textContent = isBn
+                ? `মেস মিল ও বাজার হিসাব রিপোর্ট — ${monthLabel}`
+                : `Mess Meal & Bazar Report — ${monthLabel}`;
+            document.getElementById("pdf-generated-date").textContent = new Date().toLocaleDateString('en-GB');
+            document.getElementById("pdf-rate-badge").textContent = `Meal Rate: ${fmt(calc.mealRate, 2)} ৳`;
+
+            document.getElementById("pdf-lbl-deposit").textContent = isBn ? "মোট জমা (Total Deposit)" : "Total Deposit";
+            document.getElementById("pdf-lbl-bazar").textContent = isBn ? "মোট বাজার (Total Bazar)" : "Total Bazar";
+            document.getElementById("pdf-lbl-remained").textContent = isBn ? "অবশিষ্ট ক্যাশ (Remained)" : "Remained Cash";
+            document.getElementById("pdf-lbl-meals").textContent = isBn ? "মোট মিল (Total Meals)" : "Total Meals";
+            document.getElementById("pdf-lbl-rate").textContent = isBn ? "মিল রেট (Meal Rate)" : "Meal Rate";
+
+            document.getElementById("pdf-val-deposit").textContent = fmt(calc.totalDeposit, 2);
+            document.getElementById("pdf-val-bazar").textContent = fmt(calc.totalBazar, 2);
+            document.getElementById("pdf-val-remained").textContent = fmt(calc.remainedCash, 2);
+            document.getElementById("pdf-val-meals").textContent = fmt(calc.totalAllMeals, 1);
+            document.getElementById("pdf-val-rate").textContent = fmt(calc.mealRate, 2);
+
+            // Populate Member Rows
+            let mHtml = "";
+            calc.rows.forEach((r, idx) => {
+                const bg = idx % 2 === 1 ? "#f8fafc" : "#ffffff";
+                const netColor = r.netBalance < -0.005 ? "#dc2626" : (r.netBalance > 0.005 ? "#059669" : "#334155");
+                mHtml += `<tr style="background: ${bg};">
+                    <td style="border: 1px solid #cbd5e1; padding: 3px; text-align: center;">${idx + 1}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px 5px; text-align: left; font-weight: 600;">${escapeHtml(r.name)}${r.isChef ? ' (Chef)' : ''}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px;">${fmtSmart(r.prev)}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px;">${fmt(r.deposit, 0)}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px; font-weight: 600;">${fmtSmart(r.total)}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px;">${fmt(r.mealQty, 1)}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px;">${r.mealQty > 0 ? fmt(r.mealRate, 2) : '-'}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px;">${r.displayCostMeal > 0 ? fmt(r.displayCostMeal, 2) : '-'}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px;">${r.chefShare > 0 ? fmt(r.chefShare, 2) : '-'}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px;">${r.feastCost > 0 ? fmt(r.feastCost, 2) : '-'}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px; font-weight: 600;">${r.totalCost > 0 ? fmt(r.totalCost, 2) : '-'}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 3px 4px; font-weight: 700; color: ${netColor};">${fmt(r.netBalance, 2)}</td>
+                </tr>`;
+            });
+            document.getElementById("pdf-member-tbody").innerHTML = mHtml;
+
+            document.getElementById("pdf-member-tfoot").innerHTML = `<tr>
+                <td colspan="2" style="border: 1px solid #94a3b8; padding: 4px 5px; text-align: left;">Total</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.totalPrev, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.totalDeposit, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.totalFund, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.totalAllMeals, 1)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.mealRate, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.sumCostMeal, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.sumChefCost, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.sumFeastCost, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 3px;">${fmt(calc.sumTotalCost, 2)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 4px;">${fmt(calc.sumNetBalance, 2)}</td>
+            </tr>`;
+
+            // Populate Bazar Rows (only days with cost > 0 or first 20 days so it fits cleanly on 1 A4 page)
+            let bHtml = "";
+            state.bazar.forEach((b, idx) => {
+                if (b.cost > 0 || idx < 20) {
+                    bHtml += `<tr>
+                        <td style="border: 1px solid #cbd5e1; padding: 2.5px 5px;">${b.date}</td>
+                        <td style="border: 1px solid #cbd5e1; padding: 2.5px 5px; text-align: right; font-weight: 600;">${b.cost > 0 ? fmt(b.cost, 2) : '-'}</td>
+                    </tr>`;
+                }
+            });
+            document.getElementById("pdf-bazar-tbody").innerHTML = bHtml;
+            document.getElementById("pdf-bazar-tfoot").innerHTML = `<tr>
+                <td style="border: 1px solid #94a3b8; padding: 4px 5px;">Total Bazar</td>
+                <td style="border: 1px solid #94a3b8; padding: 4px 5px; text-align: right;">${fmt(calc.totalBazar, 2)}</td>
+            </tr>`;
+
+            return calc;
+        }
+
+        // ==================== 1. GUARANTEED DIRECT PDF DOWNLOAD (MOBILE + WEBVIEW + DESKTOP) ====================
+        async function downloadPDFReport() {
+            const btn = document.getElementById("btn-download-pdf");
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>${state.lang === 'bn' ? 'তৈরি হচ্ছে...' : 'Generating...'}</span>`;
+
+            const calc = populateCleanReportTemplate();
+            const fileName = `Mess_Meal_Report_${state.monthEn.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            const reportEl = document.getElementById("pdf-print-report");
+
+            try {
+                // Temporarily make visible off-screen for crisp rendering
+                reportEl.classList.remove("hidden");
+                reportEl.style.position = "fixed";
+                reportEl.style.left = "-9999px";
+                reportEl.style.top = "0";
+                reportEl.style.zIndex = "-1";
+
+                if (typeof html2pdf !== "undefined") {
+                    const opt = {
+                        margin: [6, 6, 6, 6],
+                        filename: fileName,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                    };
+                    await html2pdf().set(opt).from(reportEl).save();
+                    showToast(state.lang === 'bn' ? 'PDF ফাইল সফলভাবে ডাউনলোড হয়েছে!' : 'PDF file downloaded successfully!');
+                } else {
+                    generateVectorJsPDF(calc, fileName);
+                }
+            } catch (err) {
+                console.warn("html2pdf fallback to jsPDF:", err);
+                generateVectorJsPDF(calc, fileName);
+            } finally {
+                reportEl.classList.add("hidden");
+                reportEl.style.position = "";
+                reportEl.style.left = "";
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        // Fallback Vector PDF Generator (Works even in restricted Android WebViews)
+        function generateVectorJsPDF(calc, fileName) {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                triggerPrintReport();
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+            doc.setFontSize(15);
+            doc.text(`Mess Meal & Bazar Report - ${state.monthEn}`, 14, 14);
+            doc.setFontSize(10);
+            doc.text(`Total Deposit: ${fmt(calc.totalDeposit, 2)}  |  Total Bazar: ${fmt(calc.totalBazar, 2)}  |  Remained: ${fmt(calc.remainedCash, 2)}  |  Meal Rate: ${fmt(calc.mealRate, 2)}`, 14, 21);
+
+            const head = [["#", "Name", "Prev. Bal", "Deposit", "Total", "Meals", "Rate", "Cost/Meal", "Chef Cost", "Feast", "Total Cost", "Net Balance"]];
+            const body = calc.rows.map((r, i) => [
+                i + 1,
+                r.name + (r.isChef ? " (Chef)" : ""),
+                fmtSmart(r.prev),
+                fmt(r.deposit, 0),
+                fmtSmart(r.total),
+                fmt(r.mealQty, 1),
+                r.mealQty > 0 ? fmt(r.mealRate, 2) : "-",
+                r.displayCostMeal > 0 ? fmt(r.displayCostMeal, 2) : "-",
+                r.chefShare > 0 ? fmt(r.chefShare, 2) : "-",
+                r.feastCost > 0 ? fmt(r.feastCost, 2) : "-",
+                r.totalCost > 0 ? fmt(r.totalCost, 2) : "-",
+                fmt(r.netBalance, 2)
+            ]);
+            body.push([
+                "", "TOTAL", fmt(calc.totalPrev, 2), fmt(calc.totalDeposit, 2), fmt(calc.totalFund, 2),
+                fmt(calc.totalAllMeals, 1), fmt(calc.mealRate, 2), fmt(calc.sumCostMeal, 2),
+                fmt(calc.sumChefCost, 2), fmt(calc.sumFeastCost, 2), fmt(calc.sumTotalCost, 2), fmt(calc.sumNetBalance, 2)
+            ]);
+
+            doc.autoTable({
+                head,
+                body,
+                startY: 25,
+                styles: { fontSize: 8, cellPadding: 1.5 },
+                headStyles: { fillColor: [30, 58, 138] },
+                theme: "grid"
+            });
+
+            doc.save(fileName);
+            showToast(state.lang === 'bn' ? 'PDF ফাইল ডাউনলোড হয়েছে!' : 'PDF downloaded!');
+        }
+
+        // ==================== 2. DIRECT EXCEL (.XLSX) WORKBOOK DOWNLOAD ====================
+        function exportToExcel() {
+            const calc = calculateAll();
+            const fileName = `Mess_Meal_Hisab_${state.monthEn.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`;
+
+            if (typeof XLSX !== "undefined") {
+                const wb = XLSX.utils.book_new();
+
+                // Sheet 1: Main Meal & Balance Sheet
+                const mainSheetData = [
+                    [`Mess Meal & Bazar Update - ${state.monthEn}`],
+                    [],
+                    ["SL", "Name", "Previous Balance", "Deposit", "Total", "Meal QTY", "Meal Rate", "Cost/Meal", "Chef Meal Cost", "Feast Meal Cost", "Total Cost", "Net Balance"]
+                ];
+                calc.rows.forEach((r, i) => {
+                    mainSheetData.push([
+                        i + 1,
+                        r.name + (r.isChef ? " (Chef)" : ""),
+                        Number(r.prev.toFixed(3)),
+                        Number(r.deposit.toFixed(2)),
+                        Number(r.total.toFixed(3)),
+                        Number(r.mealQty.toFixed(2)),
+                        Number(r.mealRate.toFixed(2)),
+                        Number(r.displayCostMeal.toFixed(2)),
+                        Number(r.chefShare.toFixed(2)),
+                        Number(r.feastCost.toFixed(2)),
+                        Number(r.totalCost.toFixed(2)),
+                        Number(r.netBalance.toFixed(2))
+                    ]);
+                });
+                mainSheetData.push([
+                    "", "Total",
+                    Number(calc.totalPrev.toFixed(2)),
+                    Number(calc.totalDeposit.toFixed(2)),
+                    Number(calc.totalFund.toFixed(2)),
+                    Number(calc.totalAllMeals.toFixed(2)),
+                    Number(calc.mealRate.toFixed(2)),
+                    Number(calc.sumCostMeal.toFixed(2)),
+                    Number(calc.sumChefCost.toFixed(2)),
+                    Number(calc.sumFeastCost.toFixed(2)),
+                    Number(calc.sumTotalCost.toFixed(2)),
+                    Number(calc.sumNetBalance.toFixed(2))
+                ]);
+                mainSheetData.push([]);
+                mainSheetData.push(["Summary", "Amount"]);
+                mainSheetData.push(["Remained Cash", Number(calc.remainedCash.toFixed(2))]);
+                mainSheetData.push(["Total Deposit", Number(calc.totalDeposit.toFixed(2))]);
+                mainSheetData.push(["Total Bazar", Number(calc.totalBazar.toFixed(2))]);
+                mainSheetData.push(["Meal Rate", Number(calc.mealRate.toFixed(2))]);
+
+                const ws1 = XLSX.utils.aoa_to_sheet(mainSheetData);
+                XLSX.utils.book_append_sheet(wb, ws1, "Meal_Balance_Sheet");
+
+                // Sheet 2: Daily Bazar Log
+                const bazarSheetData = [["Day", "Date", "Cost", "Shopper / Note"]];
+                state.bazar.forEach(b => {
+                    bazarSheetData.push([b.day, b.date, Number((parseFloat(b.cost) || 0).toFixed(2)), b.note || ""]);
+                });
+                bazarSheetData.push(["", "Total Bazar", Number(calc.totalBazar.toFixed(2)), ""]);
+                const ws2 = XLSX.utils.aoa_to_sheet(bazarSheetData);
+                XLSX.utils.book_append_sheet(wb, ws2, "Daily_Bazar");
+
+                // Sheet 3: Daily Meal Chart
+                const mealHeader = ["Name"];
+                for (let d = 1; d <= 30; d++) mealHeader.push(`Day ${d}`);
+                mealHeader.push("Total Meals");
+                const mealSheetData = [mealHeader];
+                state.members.forEach(m => {
+                    const arr = state.dailyMeals[m.id] || Array(30).fill(0);
+                    const sum = arr.reduce((a, b) => a + (parseFloat(b) || 0), 0);
+                    mealSheetData.push([m.name, ...arr, sum]);
+                });
+                const ws3 = XLSX.utils.aoa_to_sheet(mealSheetData);
+                XLSX.utils.book_append_sheet(wb, ws3, "Daily_Meal_Chart");
+
+                XLSX.writeFile(wb, fileName);
+                showToast(state.lang === 'bn' ? 'এক্সেল (.xlsx) ফাইল ডাউনলোড হয়েছে!' : 'Excel (.xlsx) file downloaded!');
+            } else {
+                // Fallback CSV if offline without CDN
+                let csv = "\uFEFFSL,Name,Previous Balance,Deposit,Total,Meal QTY,Meal Rate,Cost/Meal,Chef Meal Cost,Feast Meal Cost,Total Cost,Net Balance\n";
+                calc.rows.forEach((r, i) => {
+                    csv += `${i + 1},"${r.name}",${r.prev},${r.deposit},${r.total.toFixed(3)},${r.mealQty},${r.mealRate.toFixed(2)},${r.displayCostMeal.toFixed(2)},${r.chefShare.toFixed(2)},${r.feastCost.toFixed(2)},${r.totalCost.toFixed(2)},${r.netBalance.toFixed(2)}\n`;
+                });
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = fileName.replace(".xlsx", ".csv");
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast(state.lang === 'bn' ? 'CSV ফাইল ডাউনলোড হয়েছে!' : 'CSV file downloaded!');
+            }
+        }
+
+        // ==================== 3. CLEAN PRINT TRIGGER ====================
+        function triggerPrintReport() {
+            populateCleanReportTemplate();
+            window.print();
+        }
+
+        // ==================== 4. JSON BACKUP & RESTORE ====================
+        function downloadJsonBackup() {
+            const dataStr = JSON.stringify(state, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Mess_Backup_${state.monthEn.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(state.lang === 'bn' ? 'ব্যাকআপ ফাইল সেভ হয়েছে!' : 'Backup file saved!');
+        }
+
+        function restoreJsonBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.members && imported.bazar) {
+                        state = { ...state, ...imported };
+                        ensureDailyMealsStructure();
+                        renderAll();
+                        showToast(state.lang === 'bn' ? 'ব্যাকআপ ডাটা সফলভাবে লোড হয়েছে!' : 'Backup restored successfully!');
+                    }
+                } catch (err) {
+                    showToast(state.lang === 'bn' ? 'সঠিক ব্যাকআপ ফাইল নয়!' : 'Invalid backup file!', true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==================== UTILITIES ====================
+// ... existing code ... -->
+```

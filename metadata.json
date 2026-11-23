@@ -1,0 +1,6 @@
+{
+  "name": "Mess Meal & Bazar Manager",
+  "description": "Bilingual Bengali and English mess meal rate, daily bazar ledger, attendance matrix, and balance reconciliation manager.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

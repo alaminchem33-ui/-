@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ==================== GLOBAL PRIMITIVES ====================
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isParentLedgerOwner(ledgerId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/ledgers/$(ledgerId)) &&
+        get(/databases/$(database)/documents/ledgers/$(ledgerId)).data.ownerId == request.auth.uid;
+    }
+
+    function isParentLedgerOwnerAfter(ledgerId) {
+      return isSignedIn() &&
+        existsAfter(/databases/$(database)/documents/ledgers/$(ledgerId)) &&
+        getAfter(/databases/$(database)/documents/ledgers/$(ledgerId)).data.ownerId == request.auth.uid;
+    }
+
+    // ==================== VALIDATION BLUEPRINTS ====================
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['displayName', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['displayName', 'photoURL', 'createdAt', 'updatedAt']) &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidMessLedger(data) {
+      return data.keys().hasAll(['ownerId', 'monthBn', 'monthEn', 'chefRule', 'globalFeastTotal', 'daysCount', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['ownerId', 'monthBn', 'monthEn', 'chefRule', 'globalFeastTotal', 'daysCount', 'createdAt', 'updatedAt']) &&
+        data.ownerId is string && data.ownerId == request.auth.uid && isValidId(data.ownerId) &&
+        data.monthBn is string && data.monthBn.size() >= 1 && data.monthBn.size() <= 64 &&
+        data.monthEn is string && data.monthEn.size() >= 1 && data.monthEn.size() <= 64 &&
+        data.chefRule is string && (data.chefRule == 'equal' || data.chefRule == 'proportional') &&
+        data.globalFeastTotal is number && data.globalFeastTotal >= 0 &&
+        data.daysCount is int && data.daysCount >= 28 && data.daysCount <= 31 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidLedgerMember(data, ledgerId) {
+      return data.keys().hasAll(['ownerId', 'ledgerId', 'name', 'prev', 'deposit', 'mealQty', 'feastCost', 'isChef', 'sortOrder', 'dailyMeals', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['ownerId', 'ledgerId', 'name', 'prev', 'deposit', 'mealQty', 'feastCost', 'isChef', 'sortOrder', 'dailyMeals', 'createdAt', 'updatedAt']) &&
+        data.ownerId is string && data.ownerId == request.auth.uid && isValidId(data.ownerId) &&
+        data.ledgerId is string && data.ledgerId == ledgerId && isValidId(data.ledgerId) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 80 &&
+        data.prev is number &&
+        data.deposit is number && data.deposit >= 0 &&
+        data.mealQty is number && data.mealQty >= 0 &&
+        data.feastCost is number && data.feastCost >= 0 &&
+        data.isChef is bool &&
+        data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 500 &&
+        data.dailyMeals is list && data.dailyMeals.size() <= 31 &&
+        (data.dailyMeals.size() == 0 || (data.dailyMeals[0] is number && data.dailyMeals[0] >= 0)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidBazarDay(data, ledgerId) {
+      return data.keys().hasAll(['ownerId', 'ledgerId', 'day', 'date', 'cost', 'note', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['ownerId', 'ledgerId', 'day', 'date', 'cost', 'note', 'createdAt', 'updatedAt']) &&
+        data.ownerId is string && data.ownerId == request.auth.uid && isValidId(data.ownerId) &&
+        data.ledgerId is string && data.ledgerId == ledgerId && isValidId(data.ledgerId) &&
+        data.day is int && data.day >= 1 && data.day <= 31 &&
+        data.date is string && data.date.size() >= 1 && data.date.size() <= 20 &&
+        data.cost is number && data.cost >= 0 &&
+        data.note is string && data.note.size() <= 200 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // ==================== COLLECTION RULES ====================
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isValidId(userId) && isOwner(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) && isOwner(userId) &&
+        isValidUserProfile(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    match /ledgers/{ledgerId} {
+      allow get: if isValidId(ledgerId) && isSignedIn() && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(ledgerId) && isSignedIn() &&
+        isValidMessLedger(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(ledgerId) && isSignedIn() &&
+        existing().ownerId == request.auth.uid &&
+        isValidMessLedger(incoming()) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['monthBn', 'monthEn', 'chefRule', 'globalFeastTotal', 'daysCount', 'updatedAt'])
+        );
+      allow delete: if isValidId(ledgerId) && isSignedIn() && existing().ownerId == request.auth.uid;
+
+      match /members/{memberId} {
+        allow get: if isValidId(ledgerId) && isValidId(memberId) && isParentLedgerOwner(ledgerId);
+        allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+        allow create: if isValidId(ledgerId) && isValidId(memberId) &&
+          isParentLedgerOwnerAfter(ledgerId) &&
+          isValidLedgerMember(incoming(), ledgerId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time;
+        allow update: if isValidId(ledgerId) && isValidId(memberId) &&
+          isParentLedgerOwner(ledgerId) &&
+          existing().ownerId == request.auth.uid &&
+          isValidLedgerMember(incoming(), ledgerId) &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().ledgerId == existing().ledgerId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'prev', 'deposit', 'mealQty', 'feastCost', 'isChef', 'sortOrder', 'dailyMeals', 'updatedAt'])
+          );
+        allow delete: if isValidId(ledgerId) && isValidId(memberId) &&
+          isParentLedgerOwner(ledgerId) && existing().ownerId == request.auth.uid;
+      }
+
+      match /bazarDays/{dayId} {
+        allow get: if isValidId(ledgerId) && isValidId(dayId) && isParentLedgerOwner(ledgerId);
+        allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+        allow create: if isValidId(ledgerId) && isValidId(dayId) &&
+          isParentLedgerOwnerAfter(ledgerId) &&
+          isValidBazarDay(incoming(), ledgerId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time;
+        allow update: if isValidId(ledgerId) && isValidId(dayId) &&
+          isParentLedgerOwner(ledgerId) &&
+          existing().ownerId == request.auth.uid &&
+          isValidBazarDay(incoming(), ledgerId) &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().ledgerId == existing().ledgerId &&
+          incoming().day == existing().day &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['date', 'cost', 'note', 'updatedAt'])
+          );
+        allow delete: if isValidId(ledgerId) && isValidId(dayId) &&
+          isParentLedgerOwner(ledgerId) && existing().ownerId == request.auth.uid;
+      }
+    }
+  }
+}

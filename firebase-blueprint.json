@@ -1,0 +1,218 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated mess manager profile metadata.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Display name of the mess manager."
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Profile avatar URL."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      },
+      "required": ["displayName", "createdAt", "updatedAt"]
+    },
+    "MessLedger": {
+      "title": "MessLedger",
+      "description": "Monthly mess meal and bazar accounting ledger.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the ledger owner."
+        },
+        "monthBn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Bengali month label."
+        },
+        "monthEn": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "English month label."
+        },
+        "chefRule": {
+          "type": "string",
+          "enum": ["equal", "proportional"],
+          "description": "Distribution rule for chef meal cost."
+        },
+        "globalFeastTotal": {
+          "type": "number",
+          "description": "Total feast cost distributed across active members."
+        },
+        "daysCount": {
+          "type": "integer",
+          "description": "Number of days in the ledger month (28-31)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      },
+      "required": ["ownerId", "monthBn", "monthEn", "chefRule", "globalFeastTotal", "daysCount", "createdAt", "updatedAt"]
+    },
+    "LedgerMember": {
+      "title": "LedgerMember",
+      "description": "Individual member balance, deposit, meal quantity, and 31-day attendance record.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the parent ledger owner."
+        },
+        "ledgerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "ID of the parent ledger."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Member full name."
+        },
+        "prev": {
+          "type": "number",
+          "description": "Carried forward balance from previous month."
+        },
+        "deposit": {
+          "type": "number",
+          "description": "Current month deposit amount."
+        },
+        "mealQty": {
+          "type": "number",
+          "description": "Total meal quantity for the month."
+        },
+        "feastCost": {
+          "type": "number",
+          "description": "Assigned feast cost share."
+        },
+        "isChef": {
+          "type": "boolean",
+          "description": "Whether this member is the mess chef."
+        },
+        "sortOrder": {
+          "type": "integer",
+          "description": "Display order index."
+        },
+        "dailyMeals": {
+          "type": "array",
+          "description": "Daily meal count per day of month (max 31 entries)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      },
+      "required": ["ownerId", "ledgerId", "name", "prev", "deposit", "mealQty", "feastCost", "isChef", "sortOrder", "dailyMeals", "createdAt", "updatedAt"]
+    },
+    "BazarDay": {
+      "title": "BazarDay",
+      "description": "Daily bazar expense entry for a ledger.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the parent ledger owner."
+        },
+        "ledgerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "ID of the parent ledger."
+        },
+        "day": {
+          "type": "integer",
+          "description": "Day number (1 to 31)."
+        },
+        "date": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20,
+          "description": "Formatted date string (DD/MM/YYYY)."
+        },
+        "cost": {
+          "type": "number",
+          "description": "Daily bazar cost."
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Shopper name or item notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      },
+      "required": ["ownerId", "ledgerId", "day", "date", "cost", "note", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document keyed by Firebase Auth UID."
+    },
+    "/ledgers/{ledgerId}": {
+      "schema": { "$ref": "#/entities/MessLedger" },
+      "description": "Monthly mess ledger owned by a specific authenticated user."
+    },
+    "/ledgers/{ledgerId}/members/{memberId}": {
+      "schema": { "$ref": "#/entities/LedgerMember" },
+      "description": "Members belonging to a specific monthly mess ledger."
+    },
+    "/ledgers/{ledgerId}/bazarDays/{dayId}": {
+      "schema": { "$ref": "#/entities/BazarDay" },
+      "description": "Daily bazar expenses belonging to a specific monthly mess ledger."
+    }
+  }
+}
